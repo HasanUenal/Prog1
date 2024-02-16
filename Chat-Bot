@@ -1,0 +1,63 @@
+//author: Hasan Ünal
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
+import Prog1Tools.IOTools;
+
+public class main2 {
+    public static void main(String[] args) {
+        System.out.println("Willkommen zum Chat-Bot der TU-Berlin" +
+                "\nFolgende Befehle stehen zur Verfügung" +
+                "\nRegister 0    0 {name} {sec_nr}                     BSPL: 0 John 1337" +
+                "\nUnblock  1    1 {name} {sec_nr}                     BSPL: 1 John 1337" +
+                "\nCreate   2    2 {name} {sec_nr} {text}              BSPL: 2 John 1337 Hallo Welt " +
+                "\nDelete   3    3 {name} {sec_nr} {id}                BSPL: 3 John 1337 42" +
+                "\nVote     4    4 {name} {sec_nr} {id} {up/down}      BSPL: 4 John 1337 42 up" +
+                "\nGetBoard 5    5 {name} {sec_nr} {x}                 BSPL: 5 John 1337 10"+
+                "\n\nBitte geben sie ihren Matrikelnummer oder 112233 als Key ein");
+        String key = IOTools.readString("Bitte geben sie ihre Key ein: ");
+        System.out.println();
+
+        do {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("\nGeben sie einen Befehl ein: ");
+            //String befehl = IOTools.readString();
+            String befehl = scanner.nextLine();
+
+
+            try {
+                Socket s = new Socket("vm3.mcc.tu-berlin.de", 8080);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
+
+                DataOutputStream outputStream = new DataOutputStream(s.getOutputStream());
+                DataInputStream inputstream = new DataInputStream(s.getInputStream());
+
+
+                outputStream.writeBytes(key);
+                outputStream.write((byte) -1);
+
+                    int i;
+                    while ((i = (byte) s.getInputStream().read()) != -1) {
+                        outputStream.write(befehl.getBytes());
+                        outputStream.writeByte(-1);
+                        System.out.println();
+                        while(inputstream!= null){
+                            String response = reader.readLine();
+                            if(response==null){break;}
+                            System.out.println(response);
+                        }
+                    }
+                s.close();
+                outputStream.close();
+                inputstream.close();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("\nWenn sie abbrechen wollen, schreiben sie ABBRUCH");
+            String abbruch = scanner.nextLine();
+            if(abbruch.equals("ABBRUCH")){System.out.println("Chat-Bot wird beendet\n ");break;}
+        } while(true);
+    }
+}
